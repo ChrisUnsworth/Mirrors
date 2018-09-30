@@ -1,1 +1,11 @@
 # Mirrors
+
+The project is written in scala (www.scala-lang.org), intended to be built with sbt (www.scala-sbt.org). The project was developed using IntelliJ Idea (www.jetbrains.com/idea)
+
+To run the code use: sbt "run <filepath>" from a command line.
+Alternatively, an executable jar file can be generated: sbt package
+The tests can be run by: sbt test
+
+The code will read the input file into a buffered reader. This reader will construct an in memory model of each lock in turn. The lock data model is O(r+c+m+n) in size and takes O(rm+cm+rn+cn) time to build. The size of the model could be reduced to O(m+n) by replacing the arrays with maps. However, this would come at the cost of time, which would be increased due to the dictionary lookups required. The model is designed to optimize the time required to evaluate the beams path through the lock. Finding the next mirror to be hit by the beam can be achieved in constant time. One draw back of this approach is that the data model in not natively serialisable. Therefore, if it were to be used in a distributed computational framework (such as spark), bespoke serialization code would be required.
+
+Each lock is tested in turn, resulting in a results object, which in turn is interpreted into text and written to the command line. The lock test starts by checking for the special case in which there is only one row. This check is required as the algorithm used would return false positive results for a single row lock with no mirrors. The algorithm then proceeds to trace the path the laser beam will take if instigated from the top left. As the path is evaluated, the coordinates for all empty grid points the beam passes through are recorded. If the path ends on the last row with the beam in the correct direction, then the lock will default to open and the test is complete. Otherwise, the path the laser beam will take if instigated from the bottom right is evaluated. Again, the coordinates for all empty grid points the beam passes through are recorded. This results in two sets of grid coordinates, one for the forward pass and one for the reverse path. If any grid point appears in both sets, then it must be that the two paths cross. Therefore, placing a mirror in this location, could complete the circuit. Therefore, the intersect of these two sets contains all keys that will open the lock.
